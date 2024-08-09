@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
 import { FormEvent, useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
@@ -17,12 +18,19 @@ const Page = () => {
   const [editTask, setEditTask] = useState("");
   const [todos, setTodos] = useState<Todo[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchAllTasks = async () => {
-      const response = await axios.get("/api/v1/todo");
-      setTodos(response.data.todos);
+      try {
+        const response = await axios.get("/api/v1/todo");
+        setTodos(response.data.todos);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchAllTasks();
   }, []);
@@ -97,7 +105,12 @@ const Page = () => {
           <Button type="submit">Add</Button>
         </form>
         <div className="flex flex-col gap-3">
-          {todos.length > 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-start gap-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </div>
+          ) : todos.length > 0 ? (
             todos.map((todo) => (
               <div
                 key={todo._id}
@@ -112,7 +125,6 @@ const Page = () => {
                 ) : (
                   <h1>{todo.task}</h1>
                 )}
-
                 <div className="flex justify-center items-center gap-2">
                   {editingId === todo._id ? (
                     <>
